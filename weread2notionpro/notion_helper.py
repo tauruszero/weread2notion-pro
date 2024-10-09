@@ -6,8 +6,7 @@ import time
 from notion_client import Client
 from retrying import retry
 from datetime import timedelta
-from dotenv import load_dotenv
-from utils import (
+from weread2notionpro.utils  import (
     format_date,
     get_date,
     get_first_and_last_day_of_month,
@@ -22,7 +21,6 @@ from utils import (
     get_property_value,
 )
 
-load_dotenv()
 TAG_ICON_URL = "https://www.notion.so/icons/tag_gray.svg"
 USER_ICON_URL = "https://www.notion.so/icons/user-circle-filled_gray.svg"
 TARGET_ICON_URL = "https://www.notion.so/icons/target_red.svg"
@@ -358,6 +356,10 @@ class NotionHelper:
 
     @retry(stop_max_attempt_number=3, wait_fixed=5000)
     def append_blocks_after(self, block_id, children, after):
+        #奇怪不知道为什么会多插入一个children，没找到问题，先暂时这么解决，搜索是否有parent
+        parent = self.client.blocks.retrieve(after).get("parent")
+        if(parent.get("type")=="block_id"):
+            after = parent.get("block_id")
         return self.client.blocks.children.append(
             block_id=block_id, children=children, after=after
         )
